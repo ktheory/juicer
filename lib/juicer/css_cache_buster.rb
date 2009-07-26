@@ -24,9 +24,9 @@ module Juicer
     include Juicer::Chainable
 
     def initialize(options = {})
-      @web_root = options[:web_root]
-      @web_root.sub!(%r{/?$}, "") if @web_root # Remove trailing slash
-      @type = options[:type] || :soft
+      options[:document_root] ||= options[:web_root]
+      @web_root = options[:web_root] ? options[:web_root].sub!(%r{/?$}, "") : nil
+      @type = options[:type]
       @hosts = (options[:hosts] || []).collect { |h| h.sub!(%r{/?$}, "") } # Remove trailing slashes
       @contents = nil
     end

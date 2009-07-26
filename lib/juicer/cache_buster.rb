@@ -57,7 +57,7 @@
 #   file = Juicer::CacheBuster.hard(file, :juicer)    #=> "/home/file-juicer1234567892.png"
 #   Juicer::CacheBuster.clean(file, :juicer)          #=> "/home/file.png"
 #
-class Juicer::CacheBuster
+module Juicer::CacheBuster
   #
   # Creates a unique file name for every revision to the files contents.
   # Raises an <tt>ArgumentError</tt> if the file can not be found.
