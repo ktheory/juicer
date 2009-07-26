@@ -44,7 +44,7 @@ class TestCssCacheBuster < Test::Unit::TestCase
     buster.save file
 
     File.read(file).scan(/url\(([^\)]*)\)/m).each do |path|
-      assert_match(/[^\?]*\?jcb=\d+/, path.first)
+      assert_match(/[^\?]*\?cb=\d+/, path.first)
     end
   end
 
@@ -66,7 +66,7 @@ class TestCssCacheBuster < Test::Unit::TestCase
     end
 
     File.read(file).scan(/url\(([^\)]*)\)/m).each do |path|
-      assert_match(/[^\?]*\?jcb=\d+/, path.first)
+      assert_match(/[^\?]*\?cb=\d+/, path.first)
     end
   end
 
@@ -77,7 +77,7 @@ class TestCssCacheBuster < Test::Unit::TestCase
     buster = Juicer::CssCacheBuster.new :web_root => path("")
     buster.save file, output
 
-    buster.urls(output).each { |url| assert url !~ /(jcb=\d+).*(jcb=\d+)/, url }
+    buster.urls(output).each { |url| assert url !~ /(cb=\d+).*(cb=\d+)/, url }
   end
 
   def test_type_hard_should_produce_hard_buster_urls
@@ -86,6 +86,6 @@ class TestCssCacheBuster < Test::Unit::TestCase
     output = path("path_test3.css")
     buster = Juicer::CssCacheBuster.new :web_root => path(""), :type => :hard
     buster.save file, output
-    buster.urls(output).each { |url| assert url =~ /-\d+\.[a-z]{3}/, url }
+    buster.urls(output).each { |url| assert url =~ /-cb\d+\.[a-z]{3}/, url }
   end
 end
