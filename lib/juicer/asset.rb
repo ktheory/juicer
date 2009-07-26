@@ -10,7 +10,7 @@
 #   Dir.pwd                                                       #=> "/home/christian/projects/mysite/design/css"
 #   asset = Juicer::Asset.new "../images/logo.png"
 #   asset.path                                                    #=> "../images/logo.png"
-#   asset.path(:context => "~/projects/mysite/design")            #=> "images/logo.png"
+#   asset.path(:base => "~/projects/mysite/design")            #=> "images/logo.png"
 #   asset.filename                                                #=> "/home/christian/projects/mysite/design/images/logo.png"
 #   asset.path(:cache_buster_type => :soft)                       #=> "../images/logo.png?jcb=1234567890"
 #   asset.path(:cache_buster_type => :soft, :cache_buster => nil) #=> "../images/logo.png?1234567890"
@@ -27,8 +27,8 @@ class Juicer::Asset
   #
   # Initialize asset at <tt>path</tt>. Accepts an optional hash of options:
   #
-  # * <tt>:context</tt> Context from which asset is required. Given a <tt>path</tt> of
-  #   <tt>../images/logo.png</tt> and a <tt>:context</tt> of <tt>/project/design/css</tt>,
+  # * <tt>:base</tt> Base from which asset is required. Given a <tt>path</tt> of
+  #   <tt>../images/logo.png</tt> and a <tt>:base</tt> of <tt>/project/design/css</tt>,
   #   the asset file will be assumed to live in <tt>/project/design/images/logo.png</tt>
   #   Defaults to the current directory.
   # * <tt>:host</tt> Include hostname when asking for absolute path. Default is empty.
@@ -43,7 +43,7 @@ class Juicer::Asset
     @relative_path = nil
 
     @options = {
-      :context => Dir.pwd,
+      :base => Dir.pwd,
       :host => "",
       :protocol => "http",
       :document_root => nil
@@ -75,16 +75,16 @@ class Juicer::Asset
   def relative_path
     return @relative_path if @relative_path
 
-    require :context
+    require :base
 
-    context = Pathname.new(self.options[:context])
-    @relative_path = Pathname.new(filename).relative_path_from(context).to_s
+    base = Pathname.new(self.options[:base])
+    @relative_path = Pathname.new(filename).relative_path_from(base).to_s
   end
 
   alias path relative_path
 
   #
-  # Return filename on disk. Requires the <tt>:context</tt> option to be set for
+  # Return filename on disk. Requires the <tt>:base</tt> option to be set for
   # relative URLs, and <tt>:document_root</tt> for absolute ones.
   #
   # If asset path includes protocol and host, it needs to match the matching options.
@@ -97,7 +97,7 @@ class Juicer::Asset
     protocol_pattern = %r{^[a-zA-Z]{3,5}://}
     is_absolute = @path =~ %r{^([a-zA-Z]{3,5}:/)?/}
     has_host = @path =~ protocol_pattern
-    require :context unless is_absolute || has_host
+    require :base unless is_absolute || has_host
     require :document_root if is_absolute
     require [:host, :protocol] if has_host
 
@@ -111,7 +111,7 @@ class Juicer::Asset
     end
 
     # Figure out filename
-    base = is_absolute ? options[:document_root] : options[:context]
+    base = is_absolute ? options[:document_root] : options[:base]
     @filename = File.expand_path(File.join(base, path))
   end
 
