@@ -60,9 +60,7 @@ class Juicer::Asset
     # Options
     @base = options[:base] || Dir.pwd
     @document_root = options[:document_root]
-
-    hosts = options[:hosts]
-    @hosts = hosts.nil? ? [] : [hosts].flatten.collect { |host| host_with_scheme(host) }
+    @hosts = Juicer::Asset.hosts_with_scheme(options[:hosts])
   end
 
   #
@@ -87,7 +85,7 @@ class Juicer::Asset
       raise ArgumentError.new("No document root set") if @document_root.nil?
 
       @absolute_path = filename.sub(%r{^#@document_root}, '').sub(/^\/?/, '/')
-      @absolute_path = "#{host_with_scheme(options[:host])}#@absolute_path"
+      @absolute_path = "#{Juicer::Asset.host_with_scheme(options[:host])}#@absolute_path"
     end
 
     path_with_cache_buster(@absolute_path, options)
@@ -171,6 +169,22 @@ class Juicer::Asset
     File.exists?(filename)
   end
 
+  #
+  # Accepts a single host, or an array of hosts and returns an array of hosts
+  # that include scheme/protocol, and don't have trailing slash.
+  #
+  def self.hosts_with_scheme(hosts)
+    hosts.nil? ? [] : [hosts].flatten.collect { |host| self.host_with_scheme(host) }
+  end
+
+  #
+  # Assures that a host has scheme/protocol and no trailing slash
+  #
+  def self.host_with_scheme(host)
+    return host if host.nil?
+    (host !~ @@scheme_pattern ? "http://#{host}" : host).sub(/\/$/, '')
+  end
+
  private
   #
   # Adds cache buster to paths if :cache_buster_type and :cache_buster indicates
@@ -204,13 +218,5 @@ class Juicer::Asset
     end
 
     return path
-  end
-
-  #
-  # Assures that a host has scheme/protocol and no trailing slash
-  #
-  def host_with_scheme(host)
-    return host if host.nil?
-    (host !~ @@scheme_pattern ? "http://#{host}" : host).sub(/\/$/, '')
   end
 end
