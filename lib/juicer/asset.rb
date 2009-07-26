@@ -113,6 +113,22 @@ class Juicer::Asset
   end
 
   #
+  # Rebase path and return a new Asset object.
+  #
+  #   asset = Juicer::Asset.new "../images/logo.png", :base => "/var/www/public/stylesheets"
+  #   asset2 = asset.rebase("/var/www/public")
+  #   asset2.relative_path #=> "images/logo.png"
+  #
+  def rebase(base_path)
+    path = Pathname.new(filename).relative_path_from(Pathname.new(base_path)).to_s
+
+    Juicer::Asset.new(path,
+                      :base => base_path,
+                      :hosts => hosts,
+                      :document_root => document_root)
+  end
+
+  #
   # Returns basename of filename on disk
   #
   def basename

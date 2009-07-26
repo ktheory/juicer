@@ -104,6 +104,9 @@ class AssetTest < Test::Unit::TestCase
         assert_equal "http://localhost/images/logo.png", @asset.absolute_path(:host => "localhost/")
       end
     end
+
+#    context "with cache buster" do
+#    end
   end
 
   context "relative path" do
@@ -235,6 +238,34 @@ class AssetTest < Test::Unit::TestCase
 
         assert asset.exists?
       end
+    end
+  end
+
+  context "rebase path" do
+    should "return new asset with shifted base" do
+      base = "/var/www/project/public"
+      asset = Juicer::Asset.new "../images/logo.png", :base => "#{base}/stylesheets"
+      rebased_asset = asset.rebase(base)
+
+      assert_equal "images/logo.png", rebased_asset.path
+    end
+
+    should "preserve all options but base context" do
+      base = "/var/www/project/public"
+      options = { :base => "#{base}/stylesheets", :hosts => ["localhost"], :document_root => base }
+      asset = Juicer::Asset.new "../images/logo.png", options
+      rebased_asset = asset.rebase(base)
+
+      assert_equal asset.document_root, rebased_asset.document_root
+      assert_equal asset.hosts, rebased_asset.hosts
+    end
+
+    should "return same absolute path" do
+      base = "/var/www/project/public"
+      asset = Juicer::Asset.new "../images/logo.png", :base => "#{base}/stylesheets", :document_root => base
+      rebased_asset = asset.rebase(base)
+
+      assert_equal asset.absolute_path, rebased_asset.absolute_path
     end
   end
 end
