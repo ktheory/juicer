@@ -7,112 +7,109 @@
 # which resolves include paths to file names. It is possible, however, to use
 # the asset class directly:
 #
-#   Dir.pwd                                                       #=> "/home/christian/projects/mysite/design/css"
+#   Dir.pwd                                                        #=> "/home/christian/projects/mysite/design/css"
 #   asset = Juicer::Asset.new "../images/logo.png"
-#   asset.path                                                    #=> "../images/logo.png"
-#   asset.path(:base => "~/projects/mysite/design")            #=> "images/logo.png"
-#   asset.filename                                                #=> "/home/christian/projects/mysite/design/images/logo.png"
-#   asset.path(:cache_buster_type => :soft)                       #=> "../images/logo.png?jcb=1234567890"
-#   asset.path(:cache_buster_type => :soft, :cache_buster => nil) #=> "../images/logo.png?1234567890"
-#   asset.path(:cache_buster => "bustIT")                         #=> "../images/logo.png?bustIT=1234567890"
+#   asset.path                                                     #=> "../images/logo.png"
+#   asset.rebase("~/projects/mysite/design").path                  #=> "images/logo.png"
+#   asset.filename                                                 #=> "/home/christian/projects/mysite/design/images/logo.png"
+#   asset.path(:cache_buster_type => :soft)                        #=> "../images/logo.png?jcb=1234567890"
+#   asset.path(:cache_buster_type => :soft, :cache_buster => nil)  #=> "../images/logo.png?1234567890"
+#   asset.path(:cache_buster => "bustIT")                          #=> "../images/logo.png?bustIT=1234567890"
 #
-#   asset = Juicer::Asset.new "../images/logo.png", :document_root => "/home/christian/projects/mysite"
-#   asset.absolute_path(:cache_buster_type => :hard)              #=> "/images/logo-jcb1234567890.png"
+#   asset = Juicer::Asset.new "../images/logo.png", :document_root #=> "/home/christian/projects/mysite"
+#   asset.absolute_path(:cache_buster_type => :hard)               #=> "/images/logo-jcb1234567890.png"
+#   asset.absolute_path(:host => "http://localhost")               #=> "http://localhost/images/logo.png"
+#   asset.absolute_path(:host => "http://localhost",
+#                       :cache_buster_type => :hard)               #=> "http://localhost/images/logo-jcb1234567890.png"
 #
-# @author Christian Johansen (christian@cjohansen.no)
+# Author::    Christian Johansen (christian@cjohansen.no)
+# Copyright:: Copyright (c) 2009 Christian Johansen
+# License::   BSD
 #
 class Juicer::Asset
-  attr_reader :options
+  attr_reader :base, :hosts, :document_root
+
+  @@scheme_pattern = %r{^[a-zA-Z]{3,5}://}
 
   #
   # Initialize asset at <tt>path</tt>. Accepts an optional hash of options:
   #
-  # * <tt>:base</tt> Base from which asset is required. Given a <tt>path</tt> of
-  #   <tt>../images/logo.png</tt> and a <tt>:base</tt> of <tt>/project/design/css</tt>,
-  #   the asset file will be assumed to live in <tt>/project/design/images/logo.png</tt>
-  #   Defaults to the current directory.
-  # * <tt>:host</tt> Include hostname when asking for absolute path. Default is empty.
-  # * <tt>:protocol</tt> Supports host, default is http://
-  # * <tt>:document_root</tt> The root directory for absolute URLs (ie, the server's document
-  #   root). This option is needed when resolving absolute URLs, and when generating absolute URLs.
+  # [<tt>:base</tt>]
+  #     Base context from which asset is required. Given a <tt>path</tt> of
+  #     <tt>../images/logo.png</tt> and a <tt>:base</tt> of <tt>/project/design/css</tt>,
+  #     the asset file will be assumed to live in <tt>/project/design/images/logo.png</tt>
+  #     Defaults to the current directory.
+  # [<tt>:hosts</tt>]
+  #     Array of host names that are served from <tt>:document_root</tt>. May also
+  #     include scheme/protocol. If not, http is assumed.
+  # [<tt>:document_root</tt>]
+  #     The root directory for absolute URLs (ie, the server's document root). This
+  #     option is needed when resolving absolute URLs that include a hostname as well
+  #     as when generating absolute paths.
   #
   def initialize(path, options = {})
     @path = path
     @filename = nil
     @absolute_path = nil
     @relative_path = nil
+    @path_has_host = @path =~ @@scheme_pattern
+    @path_is_absolute = @path_has_host || @path =~ /^\//
 
-    @options = {
-      :base => Dir.pwd,
-      :host => "",
-      :protocol => "http",
-      :document_root => nil
-    }.merge(options)
+    # Options
+    @base = options[:base] || Dir.pwd
+    @document_root = options[:document_root]
+
+    hosts = options[:hosts]
+    @hosts = hosts.nil? ? [] : [hosts].flatten.collect { |host| host_with_scheme(host) }
   end
 
   #
-  # Returned path will include host if option was set when object was created
-  # (requires the <tt>:protocol</tt> option).
+  # Returns absolute path calculated using the <tt>#document_root</tt>.
+  # Optionally accepts a hash of options:
   #
-  # Juicer::Asset#filename is required to return a valid filename. In addition,
-  # the <tt>:document_root</tt> option is required.
+  # [<tt>:host</tt>] Return fully qualified URL with this host name. May include
+  #                  scheme/protocol. Default scheme is http.
   #
-  def absolute_path
+  # Raises an ArgumentException if no <tt>document_root</tt> has been set.
+  #
+  def absolute_path(options = {})
     return @absolute_path if @absolute_path
 
-    host = self.options[:host] || ""
-    require :document_root
-    require :protocol if host != ""
+    # Pre-conditions
+    raise ArgumentError.new("No document root set") if @document_root.nil?
 
-    @absolute_path = filename.sub(%r{^#{self.options[:document_root]}}, '').sub(/^\/?/, '/')
-    @absolute_path = "#{self.options[:protocol]}://#{host}#@absolute_path" if host != ""
-    @absolute_path
+    @absolute_path = filename.sub(%r{^#@document_root}, '').sub(/^\/?/, '/')
+    @absolute_path = "#{host_with_scheme(options[:host])}#@absolute_path"
   end
 
   #
-  # Return relative path.
+  # Return path relative to <tt>#base</tt>
   #
   def relative_path
-    return @relative_path if @relative_path
-
-    require :base
-
-    base = Pathname.new(self.options[:base])
-    @relative_path = Pathname.new(filename).relative_path_from(base).to_s
+    @relative_path ||= Pathname.new(filename).relative_path_from(Pathname.new(base)).to_s
   end
 
   alias path relative_path
 
   #
-  # Return filename on disk. Requires the <tt>:base</tt> option to be set for
-  # relative URLs, and <tt>:document_root</tt> for absolute ones.
+  # Return filename on disk. Requires the <tt>#document_root</tt> to be set if
+  # original path was an absolute one.
   #
-  # If asset path includes protocol and host, it needs to match the matching options.
-  # A mismatched host and/or protocol will raise an exception.
+  # If asset path includes scheme/protocol and host, it can only be resolved if
+  # a match is found in <tt>#hosts</tt>. Otherwise, an exeception is raised.
   #
   def filename
     return @filename if @filename
 
-    # Verfiy pre conditions
-    protocol_pattern = %r{^[a-zA-Z]{3,5}://}
-    is_absolute = @path =~ %r{^([a-zA-Z]{3,5}:/)?/}
-    has_host = @path =~ protocol_pattern
-    require :base unless is_absolute || has_host
-    require :document_root if is_absolute
-    require [:host, :protocol] if has_host
+    # Pre-conditions
+    raise ArgumentError.new("No document root set") if @path_is_absolute && @document_root.nil?
+    raise ArgumentError.new("No hosts served from document root") if @path_has_hosts && @hosts.empty?
 
-    # Remove hostname
-    path = @path.sub(%r{^#{options[:protocol]}://#{options[:host]}}, '')
+    path = strip_host(@path)
+    raise ArgumentError.new("No matching host found for #{@path}") if path =~ @@scheme_pattern
 
-    # Fail if host is still set
-    if path =~ protocol_pattern
-      msg = "Unable to resolve filename for #{path} using #{options[:protocol]}://#{options[:host]}"
-      raise ArgumentError.new(msg)
-    end
-
-    # Figure out filename
-    base = is_absolute ? options[:document_root] : options[:base]
-    @filename = File.expand_path(File.join(base, path))
+    dir = @path_is_absolute ? document_root : base
+    @filename = File.expand_path(File.join(dir, path))
   end
 
   #
@@ -138,12 +135,23 @@ class Juicer::Asset
 
  private
   #
-  # Require an option. Raise <tt>ArgumentError</tt> if option is nil
+  # Strip known hosts from path
   #
-  def require(type, msg = nil)
-    [type].flatten.each do |type|
-      msg ||= "No #{type.to_s.gsub(/_/, ' ')} set"
-      raise ArgumentError.new(msg) unless self.options[type]
+  def strip_host(path)
+    hosts.each do |host|
+      return path if path !~ @@scheme_pattern
+
+      path.sub!(%r{^#{host}}, '')
     end
+
+    return path
+  end
+
+  #
+  # Assures that a host has scheme/protocol and no trailing slash
+  #
+  def host_with_scheme(host)
+    return host if host.nil?
+    (host !~ @@scheme_pattern ? "http://#{host}" : host).sub(/\/$/, '')
   end
 end
