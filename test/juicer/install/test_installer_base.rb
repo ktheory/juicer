@@ -109,17 +109,17 @@ class TestInstallerBase < Test::Unit::TestCase
   end
 
   def test_download_should_cache_files_and_only_redownload_when_forced_to_do_so
-    @installer.download("http://www.julienlecomte.net/yuicompressor/")
+    @installer.download("http://yuilibrary.com/downloads/")
     filename = File.join(@juicer_home, "download/some_magic/yuicompressor")
     assert File.exists?(filename)
     sleep(0.5)
 
     mtime = File.stat(filename).mtime
-    @installer.download("http://www.julienlecomte.net/yuicompressor/")
+    @installer.download("http://yuilibrary.com/downloads/")
     assert_equal mtime, File.stat(filename).mtime
     sleep(0.5)
 
-    @installer.download("http://www.julienlecomte.net/yuicompressor/", true)
+    @installer.download("http://yuilibrary.com/downloads/", true)
     assert_not_equal mtime, File.stat(filename).mtime
   end
 
