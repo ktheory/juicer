@@ -1,3 +1,5 @@
+require "juicer/cache_buster"
+
 #
 # Assets are files used by CSS and JavaScript files. The Asset class provides
 # tools for manipulating asset paths, such as rebasing, adding cache busters,
@@ -69,24 +71,44 @@ class Juicer::Asset
   #
   # [<tt>:host</tt>] Return fully qualified URL with this host name. May include
   #                  scheme/protocol. Default scheme is http.
+  # [<tt>:cache_buster</tt>] The parameter name for the cache buster.
+  # [<tt>:cache_buster_type</tt>] The kind of cache buster to add, <tt>:soft</tt>
+  #                               or <tt>:hard</tt>.
+  #
+  # A cache buster will be added if either (or both) of the <tt>:cache_buster</tt>
+  # or <tt>:cache_buster_type</tt> options are provided. The default cache buster
+  # type is <tt>:soft</tt>.
   #
   # Raises an ArgumentException if no <tt>document_root</tt> has been set.
   #
   def absolute_path(options = {})
-    return @absolute_path if @absolute_path
+    if !@absolute_path
+      # Pre-conditions
+      raise ArgumentError.new("No document root set") if @document_root.nil?
 
-    # Pre-conditions
-    raise ArgumentError.new("No document root set") if @document_root.nil?
+      @absolute_path = filename.sub(%r{^#@document_root}, '').sub(/^\/?/, '/')
+      @absolute_path = "#{host_with_scheme(options[:host])}#@absolute_path"
+    end
 
-    @absolute_path = filename.sub(%r{^#@document_root}, '').sub(/^\/?/, '/')
-    @absolute_path = "#{host_with_scheme(options[:host])}#@absolute_path"
+    path_with_cache_buster(@absolute_path, options)
   end
 
   #
   # Return path relative to <tt>#base</tt>
   #
-  def relative_path
+  # Accepts an optional hash of options for cache busters:
+  #
+  # [<tt>:cache_buster</tt>] The parameter name for the cache buster.
+  # [<tt>:cache_buster_type</tt>] The kind of cache buster to add, <tt>:soft</tt>
+  #                               or <tt>:hard</tt>.
+  #
+  # A cache buster will be added if either (or both) of the <tt>:cache_buster</tt>
+  # or <tt>:cache_buster_type</tt> options are provided. The default cache buster
+  # type is <tt>:soft</tt>.
+  #
+  def relative_path(options = {})
     @relative_path ||= Pathname.new(filename).relative_path_from(Pathname.new(base)).to_s
+    path_with_cache_buster(@relative_path, options)
   end
 
   alias path relative_path
@@ -150,6 +172,27 @@ class Juicer::Asset
   end
 
  private
+  #
+  # Adds cache buster to paths if :cache_buster_type and :cache_buster indicates
+  # they should be added.
+  #
+  def path_with_cache_buster(path, options = {})
+    return path if !options.key?(:cache_buster) && options[:cache_buster_type].nil?
+
+    buster_path = nil
+    type = options[:cache_buster_type] || :soft
+
+    if options.key?(:cache_buster)
+      # Pass :cache_buster even if it's nil
+      buster_path = Juicer::CacheBuster.send(type, filename, options[:cache_buster])
+    else
+      # If :cache_buster wasn't specified, rely on default value
+      buster_path = Juicer::CacheBuster.send(type, filename)
+    end
+
+    path.sub(File.basename(path), File.basename(buster_path))
+  end
+
   #
   # Strip known hosts from path
   #

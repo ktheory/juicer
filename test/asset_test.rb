@@ -105,8 +105,32 @@ class AssetTest < Test::Unit::TestCase
       end
     end
 
-#    context "with cache buster" do
-#    end
+    context "with cache buster" do
+      setup do
+        @filename = "tmp.asset.txt"
+        file = File.open(@filename, "w") { |f| f.puts "Testing" }
+        @asset = Juicer::Asset.new @filename, :document_root => Dir.pwd
+      end
+
+      teardown do
+        File.delete(@filename)
+      end
+
+      should "return URL with mtime query parameter and default parameter name" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "/#@filename?cb=#{mtime}", @asset.absolute_path(:cache_buster_type => :soft)
+      end
+
+      should "return URL with mtime query parameter" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "/#@filename?#{mtime}", @asset.absolute_path(:cache_buster => nil)
+      end
+
+      should "return URL with mtime embedded" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "/#{@filename.sub(/\.txt/, '')}-jcb#{mtime}.txt", @asset.absolute_path(:cache_buster => :jcb, :cache_buster_type => :hard)
+      end
+    end
   end
 
   context "relative path" do
@@ -129,6 +153,33 @@ class AssetTest < Test::Unit::TestCase
       asset = Juicer::Asset.new path, :document_root => "/var/www/public", :base => "/var/www/public/stylesheets"
 
       assert_equal asset.relative_path, asset.path
+    end
+
+    context "with cache buster" do
+      setup do
+        @filename = "tmp.asset.txt"
+        file = File.open(@filename, "w") { |f| f.puts "Testing" }
+        @asset = Juicer::Asset.new @filename, :document_root => Dir.pwd
+      end
+
+      teardown do
+        File.delete(@filename)
+      end
+
+      should "return URL with mtime query parameter and default parameter name" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "#@filename?cb=#{mtime}", @asset.relative_path(:cache_buster_type => :soft)
+      end
+
+      should "return URL with mtime query parameter" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "#@filename?#{mtime}", @asset.relative_path(:cache_buster => nil)
+      end
+
+      should "return URL with mtime embedded" do
+        mtime = File.mtime(@filename).to_i
+        assert_equal "#{@filename.sub(/\.txt/, '')}-jcb#{mtime}.txt", @asset.relative_path(:cache_buster => :jcb, :cache_buster_type => :hard)
+      end
     end
   end
 
