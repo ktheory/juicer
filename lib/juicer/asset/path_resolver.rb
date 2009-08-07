@@ -11,7 +11,7 @@ require "juicer/asset"
 #   asset.absolute_path(path_resolver.cycle_hosts) #=> "http://assets1.mysite.com/images/logo.png"
 #
 #   asset = path_resolver.resolve "/favicon.ico"
-#   asset.absolute_path(path_resolver.cycle_hosts) #=> "http://assets1.mysite.com/favicon.ico"
+#   asset.absolute_path(path_resolver.cycle_hosts) #=> "http://assets2.mysite.com/favicon.ico"
 #
 class Juicer::Asset::PathResolver
   attr_reader :hosts, :document_root, :base
@@ -21,13 +21,12 @@ class Juicer::Asset::PathResolver
   # resolved assets.
   #
   def initialize(options = {})
+    options[:base] ||= Dir.pwd
     @options = options
-    @base = options[:base] || Dir.pwd
-    @options[:base] = @base
-    @hosts = Juicer::Asset.hosts_with_scheme(options[:hosts])
+    @base = options[:base]
+    @hosts = Juicer::Asset.hosts_with_scheme(options[:hosts]) || []
     @current_host = 0
     @document_root = @options[:document_root]
-    @base = @options[:base]
   end
 
   #
@@ -44,11 +43,11 @@ class Juicer::Asset::PathResolver
   def cycle_hosts
     return nil if @hosts.length == 0
 
-    host = @hosts[@current_host]
+    host = @hosts[@current_host % @hosts.length]
     @current_host += 1
-    @current_host = @host.lenght == @current_host ? 0 : @current_host
 
     host
   end
-end
 
+  alias :host :cycle_hosts
+end
