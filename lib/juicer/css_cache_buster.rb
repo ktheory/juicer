@@ -25,8 +25,8 @@ module Juicer
 
     def initialize(options = {})
       options[:document_root] ||= options[:web_root]
-      @web_root = options[:web_root] ? options[:web_root].sub!(%r{/?$}, "") : nil
-      @type = options[:type]
+      @web_root = options[:document_root] ? options[:document_root].sub!(%r{/?$}, "") : nil
+      @type = options[:type] || :soft
       @hosts = (options[:hosts] || []).collect { |h| h.sub!(%r{/?$}, "") } # Remove trailing slashes
       @contents = nil
     end
