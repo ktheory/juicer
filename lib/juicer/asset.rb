@@ -109,8 +109,6 @@ class Juicer::Asset
     path_with_cache_buster(@relative_path, options)
   end
 
-  alias path relative_path
-
   #
   # Return filename on disk. Requires the <tt>#document_root</tt> to be set if
   # original path was an absolute one.

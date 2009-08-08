@@ -148,13 +148,6 @@ class AssetTest < Test::Unit::TestCase
       assert_equal "..#{path}", asset.relative_path
     end
 
-    should "be aliased as path" do
-      path = "/images/logo.png"
-      asset = Juicer::Asset.new path, :document_root => "/var/www/public", :base => "/var/www/public/stylesheets"
-
-      assert_equal asset.relative_path, asset.path
-    end
-
     context "with cache buster" do
       setup do
         @filename = "tmp.asset.txt"
@@ -301,7 +294,7 @@ class AssetTest < Test::Unit::TestCase
       asset = Juicer::Asset.new "../images/logo.png", :base => "#{base}/stylesheets"
       rebased_asset = asset.rebase(base)
 
-      assert_equal "images/logo.png", rebased_asset.path
+      assert_equal "images/logo.png", rebased_asset.relative_path
     end
 
     should "preserve all options but base context" do
