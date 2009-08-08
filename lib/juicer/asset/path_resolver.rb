@@ -38,6 +38,15 @@ class Juicer::Asset::PathResolver
   end
 
   #
+  # Set new base directory. Will affect any assets resolved from here, but any
+  # assets previously resolved will not be changed
+  #
+  def base=(base)
+    @base = base
+    @options[:base] = base
+  end
+
+  #
   # Cycle asset hosts. Returns an asset host
   #
   def cycle_hosts
@@ -49,5 +58,5 @@ class Juicer::Asset::PathResolver
     host
   end
 
-  alias :host :cycle_hosts
+  alias host cycle_hosts
 end
