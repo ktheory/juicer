@@ -176,6 +176,52 @@ class AssetTest < Test::Unit::TestCase
     end
   end
 
+  context "original path" do
+    should "preserve relative path" do
+      path = "../images/logo.png"
+      asset = Juicer::Asset.new path
+
+      assert_equal path, asset.path
+    end
+
+    should "preserve absolute path" do
+      path = "/images/logo.png"
+      asset = Juicer::Asset.new path
+
+      assert_equal path, asset.path
+    end
+
+    should "preserve absolute path with host" do
+      path = "http://localhost/images/logo.png"
+      asset = Juicer::Asset.new path
+
+      assert_equal path, asset.path
+    end
+
+    context "with cache buster" do
+      setup do
+        @filename = "tmp.asset.txt"
+        file = File.open(@filename, "w") { |f| f.puts "Testing" }
+      end
+
+      teardown do
+        File.delete(@filename)
+      end
+
+      should "return original relative path with mtime query parameter and default parameter name" do
+        asset = Juicer::Asset.new @filename, :document_root => Dir.pwd
+        mtime = File.mtime(@filename).to_i
+        assert_equal "#@filename?cb=#{mtime}", asset.path(:cache_buster_type => :soft)
+      end
+
+      should "return original absolute path with mtime query parameter and default parameter name" do
+        asset = Juicer::Asset.new "/#@filename", :document_root => Dir.pwd
+        mtime = File.mtime(@filename).to_i
+        assert_equal "/#@filename?cb=#{mtime}", asset.path(:cache_buster_type => :soft)
+      end
+    end
+  end
+
   context "asset filename" do
     should "raise exception with absolute path without document root" do
       asset = Juicer::Asset.new "/images/logo.png", :document_root => nil

@@ -110,6 +110,23 @@ class Juicer::Asset
   end
 
   #
+  # Returns the original path.
+  #
+  # Accepts an optional hash of options for cache busters:
+  #
+  # [<tt>:cache_buster</tt>] The parameter name for the cache buster.
+  # [<tt>:cache_buster_type</tt>] The kind of cache buster to add, <tt>:soft</tt>
+  #                               or <tt>:hard</tt>.
+  #
+  # A cache buster will be added if either (or both) of the <tt>:cache_buster</tt>
+  # or <tt>:cache_buster_type</tt> options are provided. The default cache buster
+  # type is <tt>:soft</tt>.
+  #
+  def path(options = {})
+    path_with_cache_buster(@path, options)
+  end
+
+  #
   # Return filename on disk. Requires the <tt>#document_root</tt> to be set if
   # original path was an absolute one.
   #
