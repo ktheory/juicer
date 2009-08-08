@@ -49,4 +49,25 @@ class AssetPathResolverTest < Test::Unit::TestCase
       assert_equal "http://localhost", resolver.host
     end
   end
+
+  context "setting base" do
+    should "update property" do
+      resolver = Juicer::Asset::PathResolver.new
+      new_base = "/var/www/test"
+      resolver.base = new_base
+
+      assert_equal new_base, resolver.base
+    end
+
+    should "update base option for new assets" do
+      resolver = Juicer::Asset::PathResolver.new
+      asset1 = resolver.resolve "css/1.css"
+      resolver.base = "/var/www/test"
+      asset2 = resolver.resolve "css/1.css"
+
+      assert_not_equal asset1.base, asset2.base
+      assert_not_equal asset1.base, resolver.base
+      assert_equal asset2.base, resolver.base
+    end
+  end
 end
