@@ -123,7 +123,7 @@ class Juicer::Asset
 
     # Pre-conditions
     raise ArgumentError.new("No document root set") if @path_is_absolute && @document_root.nil?
-    raise ArgumentError.new("No hosts served from document root") if @path_has_hosts && @hosts.empty?
+    raise ArgumentError.new("No hosts served from document root") if @path_has_host && @hosts.empty?
 
     path = strip_host(@path)
     raise ArgumentError.new("No matching host found for #{@path}") if path =~ @@scheme_pattern

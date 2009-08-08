@@ -205,7 +205,12 @@ class AssetTest < Test::Unit::TestCase
       asset = Juicer::Asset.new "http://localhost/images/logo.png", options
 
       assert_raise ArgumentError do
-        asset.filename
+        begin
+          asset.filename
+        rescue ArgumentError => err
+          assert_match /No hosts served/, err.message
+          raise err
+        end
       end
     end
 
@@ -214,7 +219,12 @@ class AssetTest < Test::Unit::TestCase
       asset = Juicer::Asset.new "http://localhost/images/logo.png", options
 
       assert_raise ArgumentError do
-        asset.filename
+        begin
+          asset.filename
+        rescue ArgumentError => err
+          assert_match /No matching host/, err.message
+          raise err
+        end
       end
     end
 
