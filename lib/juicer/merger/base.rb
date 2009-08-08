@@ -43,10 +43,10 @@ module Juicer
         output = file_or_stream
 
         if output.is_a? String
-          @root = Pathname.new(File.dirname(File.expand_path(output)))
+          self.root = Pathname.new(File.dirname(File.expand_path(output)))
           output = File.open(output, 'w')
         else
-          @root = Pathname.new(File.expand_path("."))
+          self.root = Pathname.new(File.expand_path("."))
         end
 
         @files.each do |f|
@@ -57,6 +57,15 @@ module Juicer
       end
 
       chain_method :save
+
+     protected
+      def root
+        @root
+      end
+
+      def root=(path)
+        @root = path
+      end
 
      private
       def resolve_dependencies(file)
