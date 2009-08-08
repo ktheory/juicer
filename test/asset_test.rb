@@ -243,13 +243,6 @@ class AssetTest < Test::Unit::TestCase
       assert_raise(ArgumentError) { asset.filename }
     end
 
-    should "return filename from absolute path with host and document root" do
-      options = { :document_root => "/var/www/public", :hosts => "https://localhost" }
-      asset = Juicer::Asset.new "https://localhost/images/logo.png", options
-
-      assert_equal "/var/www/public/images/logo.png", asset.filename
-    end
-
     should "return filename from absolute path with hosts and document root" do
       options = { :document_root => "/var/www/public", :hosts => %w[example.com localhost https://localhost] }
       asset = Juicer::Asset.new "https://localhost/images/logo.png", options
