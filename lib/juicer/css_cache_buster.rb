@@ -25,9 +25,8 @@ module Juicer
 
     def initialize(options = {})
       options[:document_root] ||= options[:web_root]
-      @web_root = options[:document_root] ? options[:document_root].sub!(%r{/?$}, "") : nil
       @type = options[:type] || :soft
-      @hosts = (options[:hosts] || []).collect { |h| h.sub!(%r{/?$}, "") } # Remove trailing slashes
+      @path_resolver = Juicer::Asset::PathResolver.new options
       @contents = nil
     end
 
@@ -35,21 +34,21 @@ module Juicer
     # Update file. If no +output+ is provided, the input file is overwritten
     #
     def save(file, output = nil)
+      raise FileNotFoundError.new unless File.exists?(file)
       @contents = File.read(file)
+      @path_resolver.base = File.dirname(file)
+      target = !output.nil? ? File.dirname(output) : nil
       used = []
 
       urls(file).each do |url|
-        begin
-          path = resolve(url, file)
-          next if used.include?(path)
+        asset = @path_resolver.resolve(url)
+        asset = asset.rebase(target) unless target.nil?
 
-          if path != url
-            used << path
-            basename = File.basename(Juicer::CacheBuster.send(@type, path))
-            @contents.gsub!(url, File.join(File.dirname(url), basename))
-          end
-        rescue Errno::ENOENT
-          puts "Unable to locate file #{path || url}, skipping cache buster"
+        begin
+          path = asset.path(:cache_buster_type => @type)
+          @contents.gsub!(url, path)
+        rescue ArgumentError
+          puts "Unable to locate file #{url}, skipping cache buster"
         end
       end
 
@@ -66,41 +65,9 @@ module Juicer
     def urls(file)
       @contents = File.read(file) unless @contents
 
-      @contents.scan(/url\([\s"']*([^\)"'\s]*)[\s"']*\)/m).collect do |match|
+      (@contents.scan(/url\([\s"']*([^\)"'\s]*)[\s"']*\)/m).collect do |match|
         match.first
-      end
-    end
-
-    #
-    # Resolve full path from URL
-    #
-    def resolve(target, from)
-      # If URL is external, check known hosts to see if URL can be treated
-      # like a local one (ie so we can add cache buster)
-      catch(:continue) do
-        if target =~ %r{^[a-z]+\://}
-          # This could've been a one-liner, but I prefer to be
-          # able to read my own code ;)
-          @hosts.each do |host|
-            if target =~ /^#{host}/
-              target.sub!(/^#{host}/, "")
-              throw :continue
-            end
-          end
-
-          # No known hosts matched, return
-          return target
-        end
-      end
-
-      # Simply add web root to absolute URLs
-      if target =~ %r{^/}
-        raise FileNotFoundError.new("Unable to resolve absolute path #{target} without :web_root option") unless @web_root
-        return File.expand_path(File.join(@web_root, target))
-      end
-
-      # Resolve relative URLs to full paths
-      File.expand_path(File.join(File.dirname(File.expand_path(from)), target))
+      end).uniq
     end
   end
 end
