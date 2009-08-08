@@ -28,11 +28,6 @@ module Juicer
       end
 
      private
-      def root=(path)
-        super(path)
-        @path_resolver.base = path
-      end
-
       #
       # Takes care of removing any import statements. This avoids importing the
       # file that was just merged into the current file.
