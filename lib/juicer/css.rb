@@ -3,7 +3,7 @@
 #
 module Juicer
   #
-  # Defines an API to interface with new and existing CSS files. The API can be
+  # Interface with new and existing CSS files. The API can be
   # used to import all dependencies and export the resulting CSS to a new file
   # or IO stream. This result can then be fed to a compressor for compact results.
   #
