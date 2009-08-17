@@ -82,13 +82,13 @@ class TestMergeCommand < Test::Unit::TestCase
 
   def test_merger_from_valid_type
     Juicer::Command::Merge.publicize_methods do
-      assert_equal Juicer::Merger::JavaScriptMerger, @merge.merger("bleh.js")
+      assert_equal Juicer::JavaScriptMerger, @merge.merger("bleh.js")
     end
   end
 
   def test_merger_from_invalid_type
     Juicer::Command::Merge.publicize_methods do
-      assert_equal Juicer::Merger::JavaScriptMerger, @merge.merger("bleh.txt")
+      assert_equal Juicer::JavaScriptMerger, @merge.merger("bleh.txt")
       assert_match(/Unknown type 'txt', defaulting to 'js'/, @io.string)
     end
   end
@@ -96,8 +96,8 @@ class TestMergeCommand < Test::Unit::TestCase
   def test_merger_from_preset_type
     Juicer::Command::Merge.publicize_methods do
       @merge.instance_eval { @type = "css" }
-      assert_equal Juicer::Merger::StylesheetMerger, @merge.merger
-      assert_equal Juicer::Merger::StylesheetMerger, @merge.merger("bleh.txt")
+      assert_equal Juicer::StylesheetMerger, @merge.merger
+      assert_equal Juicer::StylesheetMerger, @merge.merger("bleh.txt")
     end
   end
 

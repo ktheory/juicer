@@ -1,9 +1,8 @@
-require File.expand_path(File.join(File.dirname(__FILE__), %w[.. .. test_helper])) unless defined?(Juicer)
+require "test_helper"
 
-class TestMergerBase < Test::Unit::TestCase
-
+class MergerTest < Test::Unit::TestCase
   def setup
-    @file_merger = Juicer::Merger::Base.new
+    @file_merger = Juicer::Merger.new
     Juicer::Test::FileSetup.new.create
   end
 
@@ -14,7 +13,7 @@ class TestMergerBase < Test::Unit::TestCase
 
   def test_constructor
     files = ['a.css', 'b.css'].collect { |file| path(file) }
-    file_merger = Juicer::Merger::Base.new files
+    file_merger = Juicer::Merger.new files
     assert_equal 2, file_merger.files.length
   end
 
@@ -85,7 +84,7 @@ class TestMergerBase < Test::Unit::TestCase
   end
 
   def test_resolve_dependencies
-    Juicer::Merger::Base.publicize_methods do
+    Juicer::Merger.publicize_methods do
       @file_merger.dependency_resolver = MockImportResolver.new
 
       @file_merger.resolve_dependencies('a.css')
@@ -97,7 +96,7 @@ class TestMergerBase < Test::Unit::TestCase
   end
 
   def test_merge
-    Juicer::Merger::Base.publicize_methods do
+    Juicer::Merger.publicize_methods do
       a_content = <<EOF
 @import 'b.css';
 

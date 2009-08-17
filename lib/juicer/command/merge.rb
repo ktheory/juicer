@@ -14,8 +14,8 @@ module Juicer
       #
       def initialize(log = nil)
         super('merge', false, true)
-        @types = { :js => Juicer::Merger::JavaScriptMerger,
-                   :css => Juicer::Merger::StylesheetMerger }
+        @types = { :js => Juicer::JavaScriptMerger,
+                   :css => Juicer::StylesheetMerger }
         @output = nil                   # File to write to
         @force = false                  # Overwrite existing file if true
         @type = nil                     # "css" or "js" - for minifyer

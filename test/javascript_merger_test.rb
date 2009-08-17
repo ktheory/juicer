@@ -1,9 +1,9 @@
-require File.expand_path(File.join(File.dirname(__FILE__), %w[.. .. test_helper])) unless defined?(Juicer)
+require "test_helper"
 
 class TestJavaScriptMerger < Test::Unit::TestCase
 
   def setup
-    @file_merger = Juicer::Merger::JavaScriptMerger.new
+    @file_merger = Juicer::JavaScriptMerger.new
     Juicer::Test::FileSetup.new.create
   end
 
@@ -13,13 +13,13 @@ class TestJavaScriptMerger < Test::Unit::TestCase
   end
 
   def test_init
-    Juicer::Merger::JavaScriptMerger.publicize_methods do
+    Juicer::JavaScriptMerger.publicize_methods do
       assert_equal Juicer::JavaScriptDependencyResolver, @file_merger.dependency_resolver.class
     end
   end
 
   def test_merge
-    Juicer::Merger::JavaScriptMerger.publicize_methods do
+    Juicer::JavaScriptMerger.publicize_methods do
       a_content = <<EOF
 /**
  * @depend b.js
@@ -34,7 +34,7 @@ EOF
   end
 
   def test_constructor
-    file_merger = Juicer::Merger::JavaScriptMerger.new(path('a.js'))
+    file_merger = Juicer::JavaScriptMerger.new(path('a.js'))
     assert_equal 2, file_merger.files.length
   end
 

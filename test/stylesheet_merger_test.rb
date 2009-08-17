@@ -1,9 +1,9 @@
-require File.expand_path(File.join(File.dirname(__FILE__), %w[.. .. test_helper])) unless defined?(Juicer)
+require "test_helper"
 
-class TestStylesheetMerger < Test::Unit::TestCase
+class StylesheetMergerTest < Test::Unit::TestCase
 
   def setup
-    @file_merger = Juicer::Merger::StylesheetMerger.new
+    @file_merger = Juicer::StylesheetMerger.new
     Juicer::Test::FileSetup.new.create
     Dir.chdir path("")
   end
@@ -14,13 +14,13 @@ class TestStylesheetMerger < Test::Unit::TestCase
   end
 
   def test_init
-    Juicer::Merger::StylesheetMerger.publicize_methods do
+    Juicer::StylesheetMerger.publicize_methods do
       assert_equal Juicer::CssDependencyResolver, @file_merger.dependency_resolver.class
     end
   end
 
   def test_merge
-    Juicer::Merger::StylesheetMerger.publicize_methods do
+    Juicer::StylesheetMerger.publicize_methods do
       a_content = "\n\n/* Dette er a.css */\n"
       content = @file_merger.merge(path('a.css'))
       assert_equal a_content + "\n", content
@@ -28,7 +28,7 @@ class TestStylesheetMerger < Test::Unit::TestCase
   end
 
   def test_constructor
-    file_merger = Juicer::Merger::StylesheetMerger.new(path('a.css'))
+    file_merger = Juicer::StylesheetMerger.new(path('a.css'))
     assert_equal 2, file_merger.files.length
   end
 
