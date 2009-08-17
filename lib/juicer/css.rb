@@ -11,69 +11,69 @@ module Juicer
   # you can insert custom modules to process CSS as it's being moved between
   # files, merged and compressed.
   #
-  # A few examples
+  # = Examples
   #
-  #   # Create a new CSS object (ie, not referring to an existing file on disk)
+  # Create a new CSS object (ie, not referring to an existing file on disk)
   #   css = Juicer::CSS.new
   #
-  #   # Same as @import url(myfile.css); from a CSS file: depend on another CSS
-  #   # resource.
+  # Same as <tt>@import url(myfile.css);</tt> from a CSS file: depend on another
+  # CSS resource.
   #   css.depend Juicer::CSS.new("myfile.css")
   #
-  #   # You can depend on the file directly, Juicer will wrap it in a Juicer::CSS
-  #   # object for you
+  # You can depend on the file directly, Juicer will wrap it in a
+  # <tt>Juicer::CSS</tt> object for you
   #   css.depend "myfile.css"
   #
-  #   # import is an alias for depend
+  # <tt>import</tt> is an alias for <tt>depend</tt>
   #   css.import "myfile.css"
   #
-  #   # ...as is <<
+  # ...as is <tt>&lt;&lt;</tt>
   #   css << "myfile.css"
   #
-  #   # List all dependencies
+  # List all dependencies
   #   css.dependencies #=> [#<Juicer::CSS:"myfile.css">]
   #
-  #   # List all resources. This includes self in the list:
+  # List all resources. This includes self in the list:
   #   css.resources    #=> [#<Juicer::CSS:[unsaved]>, #<Juicer::CSS:"myfile.css">]
   #
-  #   # Export the CSS resource to a file. Will include @import statements for any
-  #   # dependencies
+  # Export the CSS resource to a file. Will include <tt>@import</tt> statements
+  # for any dependencies
   #   file = File.open("myfile.css", "w")
   #   css.export(file)
   #   file.close
   #
-  #   # If you'd rather include the contents of the dependencies inline you can
-  #   # specify the :inline_dependencies option:
+  # If you'd rather include the contents of the dependencies inline you can
+  # specify the <tt>:inline_dependencies = true</tt> option:
   #   css.export(file, :inline_dependencies => true)
   #
-  #   # There are a few alternative ways to export contents:
+  # There are a few alternative ways to export contents:
   #
-  #   # Write to open file handler
+  # Write to open file handler
   #   File.open("myfile.css", "w")
   #   css.export(file)
   #   file.close
   #
-  #   # Export to filename, analogous to above example
+  # Export to filename, analogous to above example
   #   css.export("myfile.css")
   #
-  #   # Export in File.open block
+  # Export in <tt>File.open</tt> block
   #   File.open("myfile.css", "w") { |f| css.export(f) }
   #
-  #   # Read contents from CSS
+  # Read contents from CSS
   #   File.open("myfile.css", "w") { |f| f.write(css.read) }
   #
-  #   # concat is an alias to read(:inline_dependencies => true)
+  # concat is an alias to <tt>read(:inline_dependencies => true)</tt>
   #   File.open("myfile.css", "w") { |f| f.write(css.concat) }
   #
-  #   # Of course, any IO stream is acceptable
+  # Of course, any IO stream is acceptable
   #   css.export(StringIO.new)
   #
-  #   # Wrap an existing CSS resource in a Juicer::CSS instance
+  # Wrap an existing CSS resource in a <tt>Juicer::CSS</tt> instance
   #   css = Juicer::CSS.new("myfile.css")
   #   css.dependencies # Lists all @import'ed files (recursively) as Juicer::CSS objects
   #
-  #   # Add an observer to the concat operation. Adds cache busters to all URLS,
-  #   # one CSS resource at a time
+  # Add an observer to the concat operation. Adds cache busters to all URLS,
+  # one CSS resource at a time
   #   css.observe :before_concat, Juicer::CSSCacheBuster.new
   #
   # Author::    Christian Johansen (christian@cjohansen.no)
