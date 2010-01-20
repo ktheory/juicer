@@ -6,7 +6,7 @@ require 'rake/rdoctask'
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
-    gem.name = "juicer"
+    gem.name = "ktheory-juicer"
     gem.summary = "Command line tool for CSS and JavaScript developers"
     gem.description = "Resolve dependencies, merge and minify CSS and JavaScript files with Juicer - the command line tool for frontend engineers"
     gem.email = "christian@cjohansen.no"
