@@ -284,13 +284,14 @@ Will tell you about other dependencies that might be missing on your system.
 * Daniel Stockman (http://evocateur.org/)
   Fixed `juicer list` when running it against files with no dependencies
 * Aaron Suggs (http://ktheory.com)
+  Added support for depending on directories
   Fixed installers on 1.0 branch
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008-2009 Christian Johansen
+Copyright (c) 2008-2010 Christian Johansen
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
