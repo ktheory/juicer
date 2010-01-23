@@ -26,12 +26,12 @@ module Juicer
     end
 
     def initialize(options = {})
-      @web_root = options[:web_root]
-      @web_root.sub!(%r{/?$}, "") if @web_root # Remove trailing slash
+      @document_root = options[:document_root]
+      @document_root.sub!(%r{/?$}, "") if @document_root # Remove trailing slash
       @type = options[:type] || :none
       @contents = nil
       @hosts = options[:hosts]
-      @path_resolver = Juicer::Asset::PathResolver.new(:document_root => options[:web_root],
+      @path_resolver = Juicer::Asset::PathResolver.new(:document_root => options[:document_root],
                                                        :hosts => options[:hosts])
     end
 
@@ -45,7 +45,7 @@ module Juicer
       @contents = File.read(file)
       used = []
 
-      @path_resolver = Juicer::Asset::PathResolver.new(:document_root => @web_root,
+      @path_resolver = Juicer::Asset::PathResolver.new(:document_root => @document_root,
                                                        :hosts => @hosts,
                                                        :base => File.dirname(file))
 
@@ -127,10 +127,3 @@ module Juicer
     end
   end
 end
-
-# http://snippets.dzone.com/posts/show/3838
-#module Enumerable
-#  def duplicates
-#    inject({}) {|h,v| h[v]=h[v].to_i+1; h}.reject{|k,v| v==1}.keys
-#  end
-#end
