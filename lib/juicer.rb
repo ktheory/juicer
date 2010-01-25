@@ -3,7 +3,7 @@ require "logger"
 module Juicer
 
   # :stopdoc:
-  VERSION = '1.0.0-a1'
+  VERSION = '1.0.0-a2'
   LIBPATH = ::File.expand_path(::File.dirname(__FILE__)) + ::File::SEPARATOR
   PATH = ::File.dirname(LIBPATH) + ::File::SEPARATOR
   LOGGER = Logger.new(STDOUT)
@@ -57,7 +57,7 @@ module Juicer
     glob = File.join(dir, "juicer", '**', '*.rb')
 
     # Unexpand paths (avoids requiring the same file twice)
-    paths = Dir.glob(glob).map { |path| path.sub("#{dir}/", '') }
+    paths = Dir.glob(glob).map { |path| path.sub("#{dir}/", '').sub(/\.rb$/, "") }
     paths.each { |rb| require rb }
   end
 
