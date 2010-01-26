@@ -89,8 +89,8 @@ the compressor the path should be the path to where the jar file is found.
       #
       def execute(args)
         if (files = files(args)).length == 0
-          @log.fatal "Please provide atleast one input file"
-          raise SystemExit.new("Please provide atleast one input file")
+          @log.fatal "Please provide at least one input file"
+          raise SystemExit.new("Please provide at least one input file")
         end
 
         # Figure out which file to output to

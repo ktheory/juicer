@@ -19,7 +19,7 @@ class TestInstallCommand < Test::Unit::TestCase
   end
 
   context "executing command" do
-    should "require atleast one argument" do
+    should "require at least one argument" do
       assert_raise ArgumentError do
         @command.execute
       end
