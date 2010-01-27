@@ -7,7 +7,7 @@ class TestMergeCommand < Test::Unit::TestCase
 
     Juicer::Test::FileSetup.new.create
 
-    ["a.min.css", "not-ok.min.js"].each { |f| File.delete(path(f)) if File.exists?(path(f)) }
+    ["a.min.css","a.min.js", "not-ok.min.js"].each { |f| File.delete(path(f)) if File.exists?(path(f)) }
   end
 
   context "getting minifyer" do
@@ -156,7 +156,18 @@ class TestMergeCommand < Test::Unit::TestCase
         assert_match(/Ignoring detected problems/, @io.string)
       end
     end
-  
+
+    # should "use batch mode" do
+    #   @merge.instance_eval { @batch_file = path('batch.txt')}
+    # end
+
+    should "accept no input in batch mode" do
+      @merge.instance_eval { @batch_file = path('batch.txt'); @document_root = $data_dir}
+      assert_nothing_raised do
+        @merge.execute(nil)
+      end
+    end
+
     should_eventually "warn about duplicated image urls for embedding"
   end
 end

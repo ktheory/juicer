@@ -235,6 +235,28 @@ little real value and attempts at supporting it has been dropped.
 * http://www.websiteoptimization.com/speed/tweak/inline-images/
 * http://en.wikipedia.org/wiki/Data_URI_scheme
 
+=== Batch mode
+
+Juicer can merge files in batch mode. E.g.
+
+  juicer merge --batch batch.txt
+
+Juicer will merge each line in batch.txt into a different asset, passing the
+line as ARGS to the merger.
+
+For example, if batch.txt is:
+  # cat batch.txt
+  public/css/a.css
+  public/js/app.js public/js/vendor/*.js
+
+Running <code>juicer merge --batch batch.txt</code> would create
+
+  public/css/a.min.css
+  public/css/app.min.js
+
+Lines beginning with <code>#</code> are considered comments in the batch file.
+
+Note that the <code>-o</code> output file is ignored in batch mode.
 
 == PLANNED FEATURES:
 
