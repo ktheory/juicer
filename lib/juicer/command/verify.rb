@@ -26,8 +26,8 @@ minifying.
       # Execute command
       #
       def execute(args)
-        # Need atleast one file
-        raise ArgumentError.new('Please provide atleast one input file/pattern') if args.length == 0
+        # Need at least one file
+        raise ArgumentError.new('Please provide at least one input file/pattern') if args.length == 0
         Juicer::Command::Verify.check_all(files(args), @log)
       end
 

@@ -25,12 +25,12 @@ module Juicer
         @ignore = false                 # Ignore syntax problems if true
         @cache_buster = :soft           # What kind of cache buster to use, :soft or :hard
         @hosts = nil                    # Hosts to use when replacing URLs in stylesheets
-        @document_root = nil                 # Used to understand absolute paths
+        @document_root = nil            # Used to understand absolute paths
         @relative_urls = false          # Make the merger use relative URLs
         @absolute_urls = false          # Make the merger use absolute URLs
         @local_hosts = []               # Host names that are served from :document_root
         @verify = true                  # Verify js files with JsLint
-				@image_embed_type = :none       # Embed images in css files, options are :none, :data_uri
+        @image_embed_type = :none       # Embed images in css files, options are :none, :data_uri
 
         @log = log || Logger.new(STDOUT)
 
@@ -82,15 +82,43 @@ the compressor the path should be the path to where the jar file is found.
                            (" " * 37) + "None leaves URLs untouched. Candiate images must be flagged with '?embed=true to be considered") do |embed|
             @image_embed_type = [:none, :data_uri].include?(embed.to_sym) ? embed.to_sym : nil
           end
+          opt.on("", "--batch batch_file", "Merge multiple output files at once. Each line in batch_file will be treated as\n" +
+                           (" " * 37) + "ARGS and merged into a new output file.") do |file|
+            if @output
+              @log.warn "Warning: Output is ignored in batch mode."
+              @output = nil
+            end
+            @batch_file = file
+          end
         end
       end
 
       # Execute command
       #
       def execute(args)
+        @batch_file ? batch_execute(args) : _execute(args)
+      end
+
+      private
+      def batch_execute(args)
+        if !File.exists?(@batch_file)
+          @log.fatal "Batch file #{@batch_file} does not exist"
+          raise SystemExit.new("Batch file #{@batch_file} does not exist")
+        end
+
+        IO.foreach(@batch_file) do |line|
+          next if line =~ /^\s*#/ # Skip comments
+          args = line.split
+          _execute(args) unless args.empty?
+        end
+      end
+
+      # The real execute command
+      #
+      def _execute(args)
         if (files = files(args)).length == 0
-          @log.fatal "Please provide atleast one input file"
-          raise SystemExit.new("Please provide atleast one input file")
+          @log.fatal "Please provide at least one input file"
+          raise SystemExit.new("Please provide at least one input file")
         end
 
         # Figure out which file to output to
@@ -130,7 +158,6 @@ the compressor the path should be the path to where the jar file is found.
         puts err.message.sub(/:document_root/, "--document-root")
       end
 
-     private
       #
       # Resolve and load minifyer
       #
@@ -164,8 +191,7 @@ the compressor the path should be the path to where the jar file is found.
       # Resolve and load merger
       #
       def merger(output = "")
-        @type ||= output.split(/\.([^\.]*)$/)[1]
-        type = @type.to_sym if @type
+        type = (@type || output.split(/\.([^\.]*)$/)[1]).to_sym rescue nil
 
         if !@types.include?(type)
           @log.warn "Unknown type '#{type}', defaulting to 'js'"
@@ -183,22 +209,24 @@ the compressor the path should be the path to where the jar file is found.
         Juicer::CssCacheBuster.new(:document_root => @document_root, :type => @cache_buster, :hosts => @local_hosts)
       end
 
-			#
-			# Load image embed, only available for CSS files
-			# 
-			def image_embed(file)
+      #
+      # Load image embed, only available for CSS files
+      #
+      def image_embed(file)
         return nil if !file || file !~ /\.css$/ || @image_embed_type.nil?
         Juicer::ImageEmbed.new( :type => @image_embed_type )
-			end
+      end
 
       #
       # Generate output file name. Optional argument is a filename to base the new
-      # name on. It will prepend the original suffix with ".min"
+      # name on. It will prepend the original suffix with ".embedded" if the embed
+      # type is data_uri, ".min" otherwise
       #
       def output(file = "#{Time.now.to_i}.tmp")
-        @output = File.dirname(file) if @output.nil?
-        @output = File.join(@output, File.basename(file).sub(/\.([^\.]+)$/, '.min.\1')) if File.directory?(@output)
-        @output = File.expand_path(@output)
+        ext = (@image_embed_type == :data_uri) ? "embedded" : "min"
+        output = @output || File.dirname(file)
+        output = File.join(output, File.basename(file).sub(/\.([^\.]+)$/, ".#{ext}.\\1")) if File.directory?(output)
+        output = File.expand_path(output)
       end
     end
   end

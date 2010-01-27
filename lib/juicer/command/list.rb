@@ -31,7 +31,7 @@ Input parameters may be:
       #
       def execute(args)
         if args.length == 0
-          raise ArgumentError.new('Please provide atleast one input file/pattern')
+          raise ArgumentError.new('Please provide at least one input file/pattern')
         end
 
         types = { :js => Juicer::JavaScriptDependencyResolver.new,

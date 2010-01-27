@@ -156,6 +156,9 @@ p { background: url(/a2.css); }
         mkfile(module_dir, "moda.js", "// @depend ../pkg.js\npkg.a = '';")
         mkfile(module_dir, "modb.js", "// @depend ../pkg.js\n// @depend moda.js\npkg.b = '';")
 
+        # Batch file
+        mkfile(@dir, 'batch.txt', "#{@dir}/a.css\n#{@dir}/a.js")
+
       end
 
       private
