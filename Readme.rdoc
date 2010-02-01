@@ -157,7 +157,7 @@ stylesheets like this:
         ...
     </head>
 
-The first condition allows only non-IE browsers and IE&+ to fetch the
+The first condition allows only non-IE browsers and IE8+ to fetch the
 <code>master.embedded.css</code> stylesheet.
 
 The second last conditional comment allows only IE7 and lower to fetch the
